@@ -1,4 +1,7 @@
-import shaderSource from "./shaders/UnlitMaterialShader.wgsl?raw";
+import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
+import { Geometry } from "./geometry/Geometry";
+import { GeometryBuilder } from "./geometry/GeometryBuilder";
+import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
 
 async function init() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -17,27 +20,9 @@ async function init() {
     format: navigator.gpu.getPreferredCanvasFormat(),
   });
 
-  const shaderModule = device.createShaderModule({
-    code: shaderSource,
-  });
-
-  const renderPipeline = device.createRenderPipeline({
-    layout: "auto",
-    label: "Unlit Render Pipeline",
-    vertex: {
-      module: shaderModule,
-      entryPoint: "unlitMaterialVS",
-    },
-    fragment: {
-      module: shaderModule,
-      entryPoint: "unlitMaterialFS",
-      targets: [
-        {
-          format: "bgra8unorm",
-        },
-      ],
-    },
-  });
+  const unlitPipeline = new UnlitRenderPipeline(device);
+  const geometry = new GeometryBuilder().createQuadGeometry();
+  const geometryBuffers = new GeometryBuffers(device, geometry);
 
   const draw = () => {
     const commandEncoder = device.createCommandEncoder();
@@ -53,8 +38,9 @@ async function init() {
       ],
     });
 
-    renderPassEncoder.setPipeline(renderPipeline);
-    renderPassEncoder.draw(3, 1, 0, 0);
+    // DRAW HERE
+
+    unlitPipeline.draw(renderPassEncoder, geometryBuffers);
 
     renderPassEncoder.end();
 
