@@ -25,6 +25,14 @@ export class GeometryBuilder {
       1,1,0,1
     ])
 
-    return new Geometry(vertices, indices, colors);
+    // prettier-ignore
+    let texCoord = new Float32Array([
+      0,1, // bottom left
+      0,0, // top left
+      1,1, // bottom right
+      1,0  // top right
+    ])
+
+    return new Geometry(vertices, indices, colors, texCoord);
   }
 }

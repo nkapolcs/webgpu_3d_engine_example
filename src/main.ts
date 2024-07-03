@@ -2,6 +2,16 @@ import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
 import { Geometry } from "./geometry/Geometry";
 import { GeometryBuilder } from "./geometry/GeometryBuilder";
 import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
+import { Texture2D } from "./texture/Texture2D";
+
+async function loadImage(path: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src = path;
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+  });
+}
 
 async function init() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -23,6 +33,10 @@ async function init() {
   const unlitPipeline = new UnlitRenderPipeline(device);
   const geometry = new GeometryBuilder().createQuadGeometry();
   const geometryBuffers = new GeometryBuffers(device, geometry);
+
+  const image = await loadImage("assets/test_texture.jpeg");
+  const diffuseTexture = await Texture2D.create(device, image);
+  unlitPipeline.diffuseTexture = diffuseTexture;
 
   const draw = () => {
     const commandEncoder = device.createCommandEncoder();
