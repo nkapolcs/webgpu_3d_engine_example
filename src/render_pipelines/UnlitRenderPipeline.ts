@@ -1,5 +1,6 @@
 import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
 import { Color } from "../math/Color";
+import { Mat4x4 } from "../math/Mat4x4";
 import { Vec2 } from "../math/Vec2";
 import shaderSource from "../shaders/UnlitMaterialShader.wgsl?raw";
 import { Texture2D } from "../texture/Texture2D";
@@ -10,11 +11,19 @@ export class UnlitRenderPipeline {
   private textureBindGroupLayout: GPUBindGroupLayout;
 
   private diffuseTextureBindGroup!: GPUBindGroup;
-  private textureTillingBindGroup!: GPUBindGroup;
+  private vertexBindGroup!: GPUBindGroup;
   private diffuseColorBindGroup!: GPUBindGroup;
 
   public set diffuseTexture(texture: Texture2D) {
     this.diffuseTextureBindGroup = this.createTextureBindGroup(texture);
+  }
+
+  private transformBuffer: UniformBuffer;
+  private _transform: Mat4x4 = new Mat4x4();
+
+  public set transform(value: Mat4x4) {
+    this._transform = value;
+    this.transformBuffer.update(value);
   }
 
   private textureTillingBuffer: UniformBuffer;
@@ -34,6 +43,7 @@ export class UnlitRenderPipeline {
   }
 
   constructor(private device: GPUDevice) {
+    this.transformBuffer = new UniformBuffer(device, this._transform, "Transform Buffer");
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
 
@@ -76,10 +86,15 @@ export class UnlitRenderPipeline {
       ],
     });
 
-    const textureTillingGroupLayout = device.createBindGroupLayout({
+    const vertexGroupLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
+        {
+          binding: 1,
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
@@ -113,7 +128,7 @@ export class UnlitRenderPipeline {
 
     const layout = device.createPipelineLayout({
       bindGroupLayouts: [
-        textureTillingGroupLayout, // group 0
+        vertexGroupLayout, // group 0
         this.textureBindGroupLayout, // group 1
         diffuseColorGroupLayout, // group 2
       ],
@@ -140,11 +155,17 @@ export class UnlitRenderPipeline {
 
     this.diffuseTexture = Texture2D.createEmpty(this.device);
 
-    this.textureTillingBindGroup = device.createBindGroup({
-      layout: textureTillingGroupLayout,
+    this.vertexBindGroup = device.createBindGroup({
+      layout: vertexGroupLayout,
       entries: [
         {
           binding: 0,
+          resource: {
+            buffer: this.transformBuffer.buffer,
+          },
+        },
+        {
+          binding: 1,
           resource: {
             buffer: this.textureTillingBuffer.buffer,
           },
@@ -188,7 +209,7 @@ export class UnlitRenderPipeline {
     renderPassEncoder.setVertexBuffer(2, buffers.texCoordsBuffer);
 
     // passes texture
-    renderPassEncoder.setBindGroup(0, this.textureTillingBindGroup);
+    renderPassEncoder.setBindGroup(0, this.vertexBindGroup);
     renderPassEncoder.setBindGroup(1, this.diffuseTextureBindGroup);
     renderPassEncoder.setBindGroup(2, this.diffuseColorBindGroup);
 
