@@ -1,3 +1,4 @@
+import { Camera } from "./Camera/Camera";
 import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
 import { GeometryBuilder } from "./geometry/GeometryBuilder";
 import { Mat4x4 } from "./math/Mat4x4";
@@ -33,14 +34,17 @@ async function init() {
     format: navigator.gpu.getPreferredCanvasFormat(),
   });
 
-  const unlitPipeline = new UnlitRenderPipeline(device);
+  const camera = new Camera(device);
+  camera.projectionView = Mat4x4.orthographic(-5, 5, -5, 5, 0, 1);
+
+  const unlitPipeline = new UnlitRenderPipeline(device, camera);
   const geometry = new GeometryBuilder().createQuadGeometry();
   const geometryBuffers = new GeometryBuffers(device, geometry);
 
   const image = await loadImage("assets/test_texture.jpeg");
   const diffuseTexture = await Texture2D.create(device, image);
   unlitPipeline.diffuseTexture = diffuseTexture;
-  unlitPipeline.textureTilling = new Vec2(5, 5);
+  unlitPipeline.textureTilling = new Vec2(1, 1);
 
   const draw = () => {
     const commandEncoder = device.createCommandEncoder();
@@ -57,6 +61,7 @@ async function init() {
     });
 
     // DRAW HERE
+    unlitPipeline.transform = Mat4x4.translation(0, 0, 0);
     unlitPipeline.draw(renderPassEncoder, geometryBuffers);
 
     renderPassEncoder.end();

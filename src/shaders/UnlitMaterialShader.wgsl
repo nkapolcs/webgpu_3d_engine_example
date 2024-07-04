@@ -15,6 +15,9 @@ var<uniform> transform: mat4x4f;
 @group(0) @binding(1)
 var<uniform> textureTilling: vec2f;
 
+@group(1) @binding(0)
+var<uniform> viewProjection: mat4x4f;
+
 @vertex
 fn unlitMaterialVS(
   in: VSInput,
@@ -24,19 +27,19 @@ fn unlitMaterialVS(
 ) -> VSOutput {
 
   var out: VSOutput;
-  out.position = transform * vec4f(in.position, 1.0);
+  out.position = viewProjection * transform * vec4f(in.position, 1.0);
   out.color = in.color;
   out.texCoord = in.texCoord * textureTilling;
 
   return out;
 }
 
-@group(1) @binding(0)
+@group(2) @binding(0)
 var diffuseTexture: texture_2d<f32>;
-@group(1) @binding(1)
+@group(2) @binding(1)
 var diffuseTexSampler: sampler;
 
-@group(2) @binding(0)
+@group(3) @binding(0)
 var<uniform> diffuseColor: vec4f;
 
 @fragment

@@ -1,3 +1,4 @@
+import { Camera } from "../Camera/Camera";
 import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
 import { Color } from "../math/Color";
 import { Mat4x4 } from "../math/Mat4x4";
@@ -11,6 +12,7 @@ export class UnlitRenderPipeline {
   private textureBindGroupLayout: GPUBindGroupLayout;
 
   private diffuseTextureBindGroup!: GPUBindGroup;
+  private projectionViewBindGroup!: GPUBindGroup;
   private vertexBindGroup!: GPUBindGroup;
   private diffuseColorBindGroup!: GPUBindGroup;
 
@@ -42,7 +44,7 @@ export class UnlitRenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
-  constructor(private device: GPUDevice) {
+  constructor(private device: GPUDevice, camera: Camera) {
     this.transformBuffer = new UniformBuffer(device, this._transform, "Transform Buffer");
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
@@ -101,6 +103,17 @@ export class UnlitRenderPipeline {
       ],
     });
 
+    // The projection view group - for camera
+    const projectionViewGroupLayout = device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
+      ],
+    });
+
     this.textureBindGroupLayout = device.createBindGroupLayout({
       entries: [
         {
@@ -129,8 +142,9 @@ export class UnlitRenderPipeline {
     const layout = device.createPipelineLayout({
       bindGroupLayouts: [
         vertexGroupLayout, // group 0
-        this.textureBindGroupLayout, // group 1
-        diffuseColorGroupLayout, // group 2
+        projectionViewGroupLayout, // group 1
+        this.textureBindGroupLayout, // group 2
+        diffuseColorGroupLayout, // group 3
       ],
     });
 
@@ -173,6 +187,18 @@ export class UnlitRenderPipeline {
       ],
     });
 
+    this.projectionViewBindGroup = device.createBindGroup({
+      layout: projectionViewGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: camera.buffer.buffer,
+          },
+        },
+      ],
+    });
+
     this.diffuseColorBindGroup = device.createBindGroup({
       layout: diffuseColorGroupLayout,
       entries: [
@@ -210,8 +236,9 @@ export class UnlitRenderPipeline {
 
     // passes texture
     renderPassEncoder.setBindGroup(0, this.vertexBindGroup);
-    renderPassEncoder.setBindGroup(1, this.diffuseTextureBindGroup);
-    renderPassEncoder.setBindGroup(2, this.diffuseColorBindGroup);
+    renderPassEncoder.setBindGroup(1, this.projectionViewBindGroup);
+    renderPassEncoder.setBindGroup(2, this.diffuseTextureBindGroup);
+    renderPassEncoder.setBindGroup(3, this.diffuseColorBindGroup);
 
     // draw with indexed buffer
     if (buffers.indicesBuffer) {
