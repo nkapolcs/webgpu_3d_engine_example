@@ -1,5 +1,6 @@
 export class MathUtil {
   public static toRadians(degrees: number): number {
-    return (degrees * Math.PI) / 100;
+    // prettier-ignore
+    return degrees * Math.PI / 100;
   }
 }

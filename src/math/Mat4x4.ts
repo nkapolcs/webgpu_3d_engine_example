@@ -139,7 +139,8 @@ export class Mat4x4 extends Float32Array {
     const r = MathUtil.toRadians(fov);
 
     const r0c0 = 1 / Math.tan(r / 2);
-    const r1c1 = (1 / Math.tan(r / 2)) * aspectRatio;
+    //prettier-ignore
+    const r1c1 = 1 / Math.tan(r / 2) * aspectRatio;
 
     const r2c2 = -far / (near - far);
     const r3c2 = (near * far) / (near - far);
