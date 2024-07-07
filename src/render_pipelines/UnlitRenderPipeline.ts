@@ -165,6 +165,12 @@ export class UnlitRenderPipeline {
           },
         ],
       },
+      // CONFIGURE DEPTH
+      depthStencil: {
+        depthWriteEnabled: true,
+        depthCompare: "less",
+        format: "depth32float",
+      },
     });
 
     this.diffuseTexture = Texture2D.createEmpty(this.device);
