@@ -3,6 +3,7 @@ import { GeometryBuffers } from "./attribute_buffers/GeometryBuffers";
 import { GeometryBuilder } from "./geometry/GeometryBuilder";
 import { Mat4x4 } from "./math/Mat4x4";
 import { Vec2 } from "./math/Vec2";
+import { Vec3 } from "./math/Vec3";
 import { UnlitRenderPipeline } from "./render_pipelines/UnlitRenderPipeline";
 import { Texture2D } from "./texture/Texture2D";
 import { UniformBuffer } from "./uniform_buffers/UniformBuffer";
@@ -17,6 +18,7 @@ async function loadImage(path: string): Promise<HTMLImageElement> {
 }
 
 let angle = 0;
+let position = 0;
 
 async function init() {
   const canvas = document.getElementById("canvas") as HTMLCanvasElement;
@@ -48,19 +50,14 @@ async function init() {
 
   // TRANSFORMS BUFFER
   const transformsBuffer = new UniformBuffer(device, 100 * Mat4x4.BYTE_SIZE, "Transforms Buffer");
-  const transforms: Array<Mat4x4> = [];
-
-  for (let i = 0; i < 100; i++) {
-    const transformMatrix = Mat4x4.translation(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 5 + 5);
-
-    transforms.push(transformMatrix);
-
-    transformsBuffer.update(transformMatrix, i * Mat4x4.BYTE_SIZE);
-  }
+  const transformMatrix = Mat4x4.translation(0, 0, 3);
+  transformsBuffer.update(transformMatrix, 0 * Mat4x4.BYTE_SIZE);
 
   const camera = new Camera(device);
-  // camera.projectionView = Mat4x4.orthographic(-1, 1, -1, 1, 0, 1);
-  camera.projectionView = Mat4x4.perspective(60, canvas.width / canvas.height, 0.01, 10);
+  const view = Mat4x4.lookAt(new Vec3(0, 3, 0), new Vec3(0, 0, 3), new Vec3(0, 1, 0));
+  // const view = Mat4x4.orthographic(-1, 1, -1, 1, 0, 1);
+  const perspective = Mat4x4.perspective(60, canvas.width / canvas.height, 0.01, 10);
+  camera.projectionView = Mat4x4.multiply(perspective, view);
 
   const unlitPipeline = new UnlitRenderPipeline(device, camera, transformsBuffer);
   const geometry = new GeometryBuilder().createCubeGeometry();
@@ -93,12 +90,12 @@ async function init() {
     });
 
     // DRAW HERE
-    for (let i = 0; i < 10; i++) {
-      const transformMatrix = Mat4x4.translation(Math.random() * 10 - 5, Math.random() * 10 - 5, Math.random() * 5 + 5);
+    position += 0.01;
+    const view = Mat4x4.lookAt(new Vec3(position, 3, position), new Vec3(0, 0, 3), new Vec3(0, 1, 0));
+    const perspective = Mat4x4.perspective(60, canvas.width / canvas.height, 0.01, 10);
+    camera.projectionView = Mat4x4.multiply(perspective, view);
 
-      transformsBuffer.update(transformMatrix, i * Mat4x4.BYTE_SIZE);
-    }
-    unlitPipeline.draw(renderPassEncoder, geometryBuffers, 100);
+    unlitPipeline.draw(renderPassEncoder, geometryBuffers, 1);
 
     renderPassEncoder.end();
 
