@@ -20,14 +20,6 @@ export class UnlitRenderPipeline {
     this.diffuseTextureBindGroup = this.createTextureBindGroup(texture);
   }
 
-  private transformBuffer: UniformBuffer;
-  private _transform: Mat4x4 = new Mat4x4();
-
-  public set transform(value: Mat4x4) {
-    this._transform = value;
-    this.transformBuffer.update(value);
-  }
-
   private textureTillingBuffer: UniformBuffer;
   private _textureTilling: Vec2 = new Vec2(1, 1);
 
@@ -44,8 +36,7 @@ export class UnlitRenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
-  constructor(private device: GPUDevice, camera: Camera) {
-    this.transformBuffer = new UniformBuffer(device, this._transform, "Transform Buffer");
+  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer) {
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
 
@@ -181,7 +172,7 @@ export class UnlitRenderPipeline {
         {
           binding: 0,
           resource: {
-            buffer: this.transformBuffer.buffer,
+            buffer: transformsBuffer.buffer,
           },
         },
         {
@@ -234,7 +225,7 @@ export class UnlitRenderPipeline {
     });
   }
 
-  public draw(renderPassEncoder: GPURenderPassEncoder, buffers: GeometryBuffers) {
+  public draw(renderPassEncoder: GPURenderPassEncoder, buffers: GeometryBuffers, instanceCount = 1) {
     renderPassEncoder.setPipeline(this.renderPipeline);
     renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
     renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);
@@ -249,9 +240,9 @@ export class UnlitRenderPipeline {
     // draw with indexed buffer
     if (buffers.indicesBuffer) {
       renderPassEncoder.setIndexBuffer(buffers.indicesBuffer, "uint16");
-      renderPassEncoder.drawIndexed(buffers.indicesCount!, 1, 0, 0, 0);
+      renderPassEncoder.drawIndexed(buffers.indicesCount!, instanceCount, 0, 0, 0);
     } else {
-      renderPassEncoder.draw(buffers.vertextCount, 1, 0, 0);
+      renderPassEncoder.draw(buffers.vertextCount, instanceCount, 0, 0);
     }
   }
 }
