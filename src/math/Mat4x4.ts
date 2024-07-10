@@ -143,9 +143,9 @@ export class Mat4x4 extends Float32Array {
   public static perspective(fov: number = 90, aspectRatio: number = 1, near: number = 0.01, far: number = 100) {
     const r = MathUtil.toRadians(fov);
 
-    const r0c0 = 1 / Math.tan(r / 2);
+    const r0c0 = 1 / (aspectRatio * Math.tan(r / 2));
     //prettier-ignore
-    const r1c1 = 1 / Math.tan(r / 2) * aspectRatio;
+    const r1c1 = 1 / Math.tan(r / 2);
 
     const r2c2 = -far / (near - far);
     const r3c2 = (near * far) / (near - far);
@@ -202,9 +202,9 @@ export class Mat4x4 extends Float32Array {
     const lookAt = new Mat4x4();
     // prettier-ignore
     lookAt.set([
-      right.x              ,up.x              ,forward.x             ,0,
-      right.y              ,up.y              ,forward.y             ,0,
-      right.z              ,up.z              ,forward.z             ,0,
+       right.x             , up.x             , forward.x             ,0,
+       right.y             , up.y             , forward.y             ,0,
+       right.z             , up.z             , forward.z             ,0,
       -Vec3.dot(eye, right),-Vec3.dot(eye, up),-Vec3.dot(eye, forward),1
     ])
 

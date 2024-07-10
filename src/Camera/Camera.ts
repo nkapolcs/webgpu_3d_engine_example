@@ -12,7 +12,7 @@ export class Camera {
   private up = new Vec3(0, 1, 0);
 
   // PERSPECTIVE PROPERTIES
-  public fov = 60;
+  public fov = 45;
   public near = 0.01;
   public far = 100;
 
