@@ -39,39 +39,39 @@ export class GeometryBuilder {
     // prettier-ignore
     let vertices = new Float32Array([
         // front
-        -0.5, -0.5, 0.5, // bottom left
-        -0.5, 0.5, 0.5, // top left
-        0.5, -0.5, 0.5, // bottom right
-        0.5, 0.5, 0.5, // top right
+        -0.5,-0.5,-0.5, // bottom left
+        -0.5, 0.5,-0.5, // top left
+         0.5,-0.5,-0.5, // bottom right
+         0.5, 0.5,-0.5, // top right
         // back
-        -0.5, -0.5, -0.5, // bottom left
-        -0.5, 0.5, -0.5, // top left
-        0.5, -0.5, -0.5, // bottom right
-        0.5, 0.5, -0.5, // top right
+        -0.5,-0.5, 0.5, // bottom left
+        -0.5, 0.5, 0.5, // top left
+         0.5,-0.5, 0.5, // bottom right
+         0.5, 0.5, 0.5, // top right
 
         // left
-        -0.5, -0.5, -0.5, // bottom left
-        -0.5, 0.5, -0.5, // top left
-        -0.5, -0.5, 0.5, // bottom right
+        -0.5,-0.5,-0.5, // bottom left
+        -0.5, 0.5,-0.5, // top left
+        -0.5,-0.5, 0.5, // bottom right
         -0.5, 0.5, 0.5, // top right
 
         // right
-        0.5, -0.5, -0.5, // bottom left
-        0.5, 0.5, -0.5, // top left
-        0.5, -0.5, 0.5, // bottom right
-        0.5, 0.5, 0.5, // top right
+         0.5,-0.5,-0.5, // bottom left
+         0.5, 0.5,-0.5, // top left
+         0.5,-0.5, 0.5, // bottom right
+         0.5, 0.5, 0.5, // top right
 
         // top
-        -0.5, 0.5, -0.5, // bottom left
+        -0.5, 0.5,-0.5, // bottom left
         -0.5, 0.5, 0.5, // top left
-        0.5, 0.5, -0.5, // bottom right
-        0.5, 0.5, 0.5, // top right
+         0.5, 0.5,-0.5, // bottom right
+         0.5, 0.5, 0.5, // top right
 
         // bottom
-        -0.5, -0.5, -0.5, // bottom left
-        -0.5, -0.5, 0.5, // top left
-        0.5, -0.5, -0.5, // bottom right
-        0.5, -0.5, 0.5, // top right
+        -0.5,-0.5,-0.5, // bottom left
+        -0.5,-0.5, 0.5, // top left
+         0.5,-0.5,-0.5, // bottom right
+         0.5,-0.5, 0.5, // top right
     ]);
 
     // prettier-ignore
@@ -163,6 +163,45 @@ export class GeometryBuilder {
         1, 1,
         1, 0
     ]);
-    return new Geometry(vertices, indices, colors, texCoords);
+
+    // prettier-ignore
+    let normals = new Float32Array([
+      // front
+       0, 0,-1, // bottom left
+       0, 0,-1, // top left
+       0, 0,-1, // bottom right
+       0, 0,-1, // top right
+      // back
+       0, 0, 1, // bottom left
+       0, 0, 1, // top left
+       0, 0, 1, // bottom right
+       0, 0, 1, // top right
+
+      // left
+      -1, 0, 0, // bottom left
+      -1, 0, 0, // top left
+      -1, 0, 0, // bottom right
+      -1, 0, 0, // top right
+
+      // right
+       1, 0, 0, // bottom left
+       1, 0, 0, // top left
+       1, 0, 0, // bottom right
+       1, 0, 0, // top right
+
+      // top
+       0, 1, 0, // bottom left
+       0, 1, 0, // top left
+       0, 1, 0, // bottom right
+       0, 1, 0, // top right
+
+      // bottom
+       0,-1, 0, // bottom left
+       0,-1, 0, // top left
+       0,-1, 0, // bottom right
+       0,-1, 0, // top right
+    ]);
+
+    return new Geometry(vertices, indices, colors, texCoords, normals);
   }
 }

@@ -2,6 +2,7 @@ import { Camera } from "./Camera/Camera";
 import { GeometryBuffersCollection } from "./attribute_buffers/GeometryBuffersCollection";
 import { Ball } from "./game_objects/Ball";
 import { Paddle } from "./game_objects/Paddle";
+import { AmbientLight } from "./lights/AmbientLight";
 import { Color } from "./math/Color";
 import { Vec3 } from "./math/Vec3";
 import { Texture2D } from "./texture/Texture2D";
@@ -28,18 +29,24 @@ async function init() {
   // DEPTH TEXTURE
   const depthTexture = Texture2D.createDepthTexture(device, canvas.width, canvas.height);
 
+  // LIGHTS
+  const ambientLight = new AmbientLight(device);
+  ambientLight.color = new Color(1, 1, 1, 1);
+  ambientLight.intensity = 0.5;
+
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0, 0, -20);
-  const paddle1 = new Paddle(device, camera);
+  const paddle1 = new Paddle(device, camera, ambientLight);
   paddle1.position.x = -10;
   paddle1.color = new Color(1, 0, 0, 1);
-  const paddle2 = new Paddle(device, camera);
+  const paddle2 = new Paddle(device, camera, ambientLight);
   paddle2.position.x = 10;
   paddle2.color = new Color(0, 0, 1, 1);
   const ball = new Ball(device, camera);
 
   const update = () => {
+    ambientLight.update();
     camera.update();
     paddle1.update();
     paddle2.update();

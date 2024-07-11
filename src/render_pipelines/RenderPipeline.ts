@@ -1,22 +1,23 @@
 import { Camera } from "../Camera/Camera";
 import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
+import { AmbientLight } from "../lights/AmbientLight";
 import { Color } from "../math/Color";
 import { Vec2 } from "../math/Vec2";
-import shaderSource from "../shaders/UnlitMaterialShader.wgsl?raw";
+import shaderSource from "../shaders/MaterialShader.wgsl?raw";
 import { Texture2D } from "../texture/Texture2D";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
-export class UnlitRenderPipeline {
+export class RenderPipeline {
   private renderPipeline: GPURenderPipeline;
-  private textureBindGroupLayout: GPUBindGroupLayout;
+  private materialBindGroupLayout: GPUBindGroupLayout;
 
-  private diffuseTextureBindGroup!: GPUBindGroup;
+  private materialBindGroup!: GPUBindGroup;
   private projectionViewBindGroup!: GPUBindGroup;
   private vertexBindGroup!: GPUBindGroup;
-  private diffuseColorBindGroup!: GPUBindGroup;
+  private lightBindGroup!: GPUBindGroup;
 
   public set diffuseTexture(texture: Texture2D) {
-    this.diffuseTextureBindGroup = this.createTextureBindGroup(texture);
+    this.materialBindGroup = this.createMaterialBindGroup(texture);
   }
 
   private textureTillingBuffer: UniformBuffer;
@@ -35,7 +36,7 @@ export class UnlitRenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
-  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer) {
+  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer, ambientLight: AmbientLight) {
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
 
@@ -78,6 +79,17 @@ export class UnlitRenderPipeline {
       ],
     });
 
+    bufferLayout.push({
+      arrayStride: 3 * Float32Array.BYTES_PER_ELEMENT,
+      attributes: [
+        {
+          shaderLocation: 3,
+          offset: 0,
+          format: "float32x3",
+        },
+      ],
+    });
+
     const vertexGroupLayout = device.createBindGroupLayout({
       entries: [
         {
@@ -104,7 +116,7 @@ export class UnlitRenderPipeline {
       ],
     });
 
-    this.textureBindGroupLayout = device.createBindGroupLayout({
+    this.materialBindGroupLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -116,10 +128,15 @@ export class UnlitRenderPipeline {
           visibility: GPUShaderStage.FRAGMENT,
           sampler: {},
         },
+        {
+          binding: 2,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {},
+        },
       ],
     });
 
-    const diffuseColorGroupLayout = device.createBindGroupLayout({
+    const lightsGroupLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
@@ -133,22 +150,22 @@ export class UnlitRenderPipeline {
       bindGroupLayouts: [
         vertexGroupLayout, // group 0
         projectionViewGroupLayout, // group 1
-        this.textureBindGroupLayout, // group 2
-        diffuseColorGroupLayout, // group 3
+        this.materialBindGroupLayout, // group 2
+        lightsGroupLayout, // group 3
       ],
     });
 
     this.renderPipeline = device.createRenderPipeline({
       layout: layout,
-      label: "Unlit Render Pipeline",
+      label: "Render Pipeline",
       vertex: {
         buffers: bufferLayout,
         module: shaderModule,
-        entryPoint: "unlitMaterialVS",
+        entryPoint: "materialVS",
       },
       fragment: {
         module: shaderModule,
-        entryPoint: "unlitMaterialFS",
+        entryPoint: "materialFS",
         targets: [
           {
             format: "bgra8unorm",
@@ -195,22 +212,22 @@ export class UnlitRenderPipeline {
       ],
     });
 
-    this.diffuseColorBindGroup = device.createBindGroup({
-      layout: diffuseColorGroupLayout,
+    this.lightBindGroup = device.createBindGroup({
+      layout: lightsGroupLayout,
       entries: [
         {
           binding: 0,
           resource: {
-            buffer: this.diffuseColorBuffer.buffer,
+            buffer: ambientLight.buffer.buffer,
           },
         },
       ],
     });
   }
 
-  private createTextureBindGroup(texture: Texture2D) {
+  private createMaterialBindGroup(texture: Texture2D) {
     return this.device.createBindGroup({
-      layout: this.textureBindGroupLayout,
+      layout: this.materialBindGroupLayout,
       entries: [
         {
           binding: 0,
@@ -219,6 +236,12 @@ export class UnlitRenderPipeline {
         {
           binding: 1,
           resource: texture.sampler,
+        },
+        {
+          binding: 2,
+          resource: {
+            buffer: this.diffuseColorBuffer.buffer,
+          },
         },
       ],
     });
@@ -229,12 +252,13 @@ export class UnlitRenderPipeline {
     renderPassEncoder.setVertexBuffer(0, buffers.positionsBuffer);
     renderPassEncoder.setVertexBuffer(1, buffers.colorsBuffer);
     renderPassEncoder.setVertexBuffer(2, buffers.texCoordsBuffer);
+    renderPassEncoder.setVertexBuffer(3, buffers.normalsBuffer);
 
     // passes texture
     renderPassEncoder.setBindGroup(0, this.vertexBindGroup);
     renderPassEncoder.setBindGroup(1, this.projectionViewBindGroup);
-    renderPassEncoder.setBindGroup(2, this.diffuseTextureBindGroup);
-    renderPassEncoder.setBindGroup(3, this.diffuseColorBindGroup);
+    renderPassEncoder.setBindGroup(2, this.materialBindGroup);
+    renderPassEncoder.setBindGroup(3, this.lightBindGroup);
 
     // draw with indexed buffer
     if (buffers.indicesBuffer) {
