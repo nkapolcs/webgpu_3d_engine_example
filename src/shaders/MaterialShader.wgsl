@@ -43,6 +43,12 @@ struct AmbientLight {
   @location(1) intensity: f32,
 }
 
+struct DirectionalLight {
+  @location(0) color: vec3f,
+  @location(1) intensity: f32,
+  @location(2) direction: vec3f,
+}
+
 @group(2) @binding(0)
 var diffuseTexture: texture_2d<f32>;
 @group(2) @binding(1)
@@ -52,11 +58,19 @@ var<uniform> diffuseColor: vec4f;
 
 @group(3) @binding(0)
 var<uniform> ambientLight: AmbientLight;
+@group(3) @binding(1)
+var<uniform> directionalLight: DirectionalLight;
 
 @fragment
 fn materialFS(in: VSOutput) -> @location(0) vec4f {
   // AMBIENT
   var colorAmount = ambientLight.color * ambientLight.intensity;
+
+  // DIRECTIONAL LIGTH / DIFFUSE
+  var lightDir = normalize(-directionalLight.direction);
+  var n = normalize(in.normal);
+  var diff = max(dot(n, lightDir), 0.0);
+  colorAmount += directionalLight.color * directionalLight.intensity * diff;
 
   var color = textureSample(diffuseTexture, diffuseTexSampler, in.texCoord) * in.color * diffuseColor;
 

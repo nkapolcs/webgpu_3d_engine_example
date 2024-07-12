@@ -1,6 +1,7 @@
 import { Camera } from "../Camera/Camera";
 import { GeometryBuffers } from "../attribute_buffers/GeometryBuffers";
 import { AmbientLight } from "../lights/AmbientLight";
+import { DirectionalLight } from "../lights/DirectionalLight";
 import { Color } from "../math/Color";
 import { Vec2 } from "../math/Vec2";
 import shaderSource from "../shaders/MaterialShader.wgsl?raw";
@@ -36,7 +37,7 @@ export class RenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
-  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer, ambientLight: AmbientLight) {
+  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer, ambientLight: AmbientLight, directionalLight: DirectionalLight) {
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
 
@@ -143,6 +144,11 @@ export class RenderPipeline {
           visibility: GPUShaderStage.FRAGMENT,
           buffer: {},
         },
+        {
+          binding: 1,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {},
+        },
       ],
     });
 
@@ -219,6 +225,12 @@ export class RenderPipeline {
           binding: 0,
           resource: {
             buffer: ambientLight.buffer.buffer,
+          },
+        },
+        {
+          binding: 1,
+          resource: {
+            buffer: directionalLight.buffer.buffer,
           },
         },
       ],

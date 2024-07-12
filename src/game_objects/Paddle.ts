@@ -1,6 +1,7 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../Camera/Camera";
 import { AmbientLight } from "../lights/AmbientLight";
+import { DirectionalLight } from "../lights/DirectionalLight";
 import { Color } from "../math/Color";
 import { Mat4x4 } from "../math/Mat4x4";
 import { Vec3 } from "../math/Vec3";
@@ -18,9 +19,9 @@ export class Paddle {
 
   public color = new Color(1, 1, 1, 1);
 
-  constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight) {
+  constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight) {
     this.transformBuffer = new UniformBuffer(device, this.transform, "Paddle Transform");
-    this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, ambientLight);
+    this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, ambientLight, directionalLight);
   }
 
   public update() {

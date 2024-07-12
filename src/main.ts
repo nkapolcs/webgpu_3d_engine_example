@@ -3,6 +3,7 @@ import { GeometryBuffersCollection } from "./attribute_buffers/GeometryBuffersCo
 import { Ball } from "./game_objects/Ball";
 import { Paddle } from "./game_objects/Paddle";
 import { AmbientLight } from "./lights/AmbientLight";
+import { DirectionalLight } from "./lights/DirectionalLight";
 import { Color } from "./math/Color";
 import { Vec3 } from "./math/Vec3";
 import { Texture2D } from "./texture/Texture2D";
@@ -33,19 +34,24 @@ async function init() {
   const ambientLight = new AmbientLight(device);
   ambientLight.color = new Color(1, 1, 1, 1);
   ambientLight.intensity = 0.5;
+  const directionalLight = new DirectionalLight(device);
+  directionalLight.color = new Color(1, 1, 1, 1);
+  directionalLight.intensity = 1;
+  directionalLight.direction = new Vec3(0, 0, 1);
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0, 0, -20);
-  const paddle1 = new Paddle(device, camera, ambientLight);
+  const paddle1 = new Paddle(device, camera, ambientLight, directionalLight);
   paddle1.position.x = -10;
   paddle1.color = new Color(1, 0, 0, 1);
-  const paddle2 = new Paddle(device, camera, ambientLight);
+  const paddle2 = new Paddle(device, camera, ambientLight, directionalLight);
   paddle2.position.x = 10;
   paddle2.color = new Color(0, 0, 1, 1);
-  const ball = new Ball(device, camera);
+  const ball = new Ball(device, camera, ambientLight, directionalLight);
 
   const update = () => {
+    directionalLight.update();
     ambientLight.update();
     camera.update();
     paddle1.update();
