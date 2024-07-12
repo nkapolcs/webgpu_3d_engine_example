@@ -15,6 +15,8 @@ struct VSOutput {
 @group(0) @binding(0)
 var<uniform> transforms: array<mat4x4f, 1>;
 @group(0) @binding(1)
+var<uniform> normalMatrix: array<mat3x3f, 1>;
+@group(0) @binding(2)
 var<uniform> textureTilling: vec2f;
 
 @group(1) @binding(0)
@@ -33,7 +35,7 @@ fn materialVS(
   out.position = viewProjection * transforms[iid] * vec4f(in.position, 1.0);
   out.color = in.color;
   out.texCoord = in.texCoord * textureTilling;
-  out.normal = in.normal;
+  out.normal = normalMatrix[iid] * in.normal;
 
   return out;
 }

@@ -37,7 +37,14 @@ export class RenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
-  constructor(private device: GPUDevice, camera: Camera, transformsBuffer: UniformBuffer, ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+  constructor(
+    private device: GPUDevice,
+    camera: Camera,
+    transformsBuffer: UniformBuffer,
+    normalMatrixBuffer: UniformBuffer,
+    ambientLight: AmbientLight,
+    directionalLight: DirectionalLight
+  ) {
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
 
@@ -100,6 +107,11 @@ export class RenderPipeline {
         },
         {
           binding: 1,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
+        {
+          binding: 2,
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
@@ -199,6 +211,12 @@ export class RenderPipeline {
         },
         {
           binding: 1,
+          resource: {
+            buffer: normalMatrixBuffer.buffer,
+          },
+        },
+        {
+          binding: 2,
           resource: {
             buffer: this.textureTillingBuffer.buffer,
           },
