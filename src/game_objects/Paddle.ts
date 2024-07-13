@@ -2,6 +2,7 @@ import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersC
 import { Camera } from "../Camera/Camera";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
+import { PointLightsCollection } from "../lights/PointLight";
 import { Color } from "../math/Color";
 import { Mat3x3 } from "../math/Mat3x3";
 import { Mat4x4 } from "../math/Mat4x4";
@@ -21,18 +22,24 @@ export class Paddle {
 
   public color = new Color(1, 1, 1, 1);
 
-  constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight) {
+  private angle = 0.0;
+
+  constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
     this.transformBuffer = new UniformBuffer(device, this.transform, "Paddle Transform");
 
     this.normalMatrixBuffer = new UniformBuffer(device, 16 * Float32Array.BYTES_PER_ELEMENT, "Paddle Normal Matrix");
 
-    this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, this.normalMatrixBuffer, ambientLight, directionalLight);
+    this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, this.normalMatrixBuffer, ambientLight, directionalLight, pointLights);
   }
 
   public update() {
+    this.angle += 0.01;
     const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
+    const rotation = Mat4x4.rotationZ(this.angle);
     const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
-    this.transform = Mat4x4.multiply(translate, scale);
+
+    this.transform = Mat4x4.multiply(translate, rotation);
+    this.transform = Mat4x4.multiply(this.transform, scale);
 
     let normalMatrix = Mat3x3.fromMat4x4(this.transform);
     normalMatrix = Mat3x3.transpose(normalMatrix);

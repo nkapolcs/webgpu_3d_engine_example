@@ -4,6 +4,7 @@ import { Ball } from "./game_objects/Ball";
 import { Paddle } from "./game_objects/Paddle";
 import { AmbientLight } from "./lights/AmbientLight";
 import { DirectionalLight } from "./lights/DirectionalLight";
+import { PointLightsCollection } from "./lights/PointLight";
 import { Color } from "./math/Color";
 import { Vec3 } from "./math/Vec3";
 import { Texture2D } from "./texture/Texture2D";
@@ -37,18 +38,28 @@ async function init() {
   const directionalLight = new DirectionalLight(device);
   directionalLight.color = new Color(1, 1, 1, 1);
   directionalLight.intensity = 1;
-  directionalLight.direction = new Vec3(0, 0, 1);
+  directionalLight.direction = new Vec3(0, -1, 0);
+  const pointLights = new PointLightsCollection(device);
+  pointLights.lights[0].color = new Color(1, 0, 0, 1);
+  pointLights.lights[0].intensity = 1;
+  pointLights.lights[0].position = new Vec3(4, 2, -1);
+  pointLights.lights[0].color = new Color(0, 1, 0, 1);
+  pointLights.lights[0].intensity = 1;
+  pointLights.lights[0].position = new Vec3(-4, 2, -1);
+  pointLights.lights[0].color = new Color(0, 0, 1, 1);
+  pointLights.lights[0].intensity = 1;
+  pointLights.lights[0].position = new Vec3(2, -4, -1);
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
   camera.eye = new Vec3(0, 0, -20);
-  const paddle1 = new Paddle(device, camera, ambientLight, directionalLight);
+  const paddle1 = new Paddle(device, camera, ambientLight, directionalLight, pointLights);
   paddle1.position.x = -10;
-  paddle1.color = new Color(1, 0, 0, 1);
-  const paddle2 = new Paddle(device, camera, ambientLight, directionalLight);
+  paddle1.color = new Color(1, 0.3, 0.3, 1);
+  const paddle2 = new Paddle(device, camera, ambientLight, directionalLight, pointLights);
   paddle2.position.x = 10;
-  paddle2.color = new Color(0, 0, 1, 1);
-  const ball = new Ball(device, camera, ambientLight, directionalLight);
+  paddle2.color = new Color(0.3, 0.3, 1, 1);
+  const ball = new Ball(device, camera, ambientLight, directionalLight, pointLights);
 
   const update = () => {
     directionalLight.update();
@@ -57,6 +68,7 @@ async function init() {
     paddle1.update();
     paddle2.update();
     ball.update();
+    pointLights.update();
   };
 
   const draw = () => {
