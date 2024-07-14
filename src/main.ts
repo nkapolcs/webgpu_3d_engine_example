@@ -1,6 +1,7 @@
 import { Camera } from "./Camera/Camera";
 import { GeometryBuffersCollection } from "./attribute_buffers/GeometryBuffersCollection";
 import { Ball } from "./game_objects/Ball";
+import { Floor } from "./game_objects/Floor";
 import { Paddle } from "./game_objects/Paddle";
 import { AmbientLight } from "./lights/AmbientLight";
 import { DirectionalLight } from "./lights/DirectionalLight";
@@ -41,14 +42,14 @@ async function init() {
   directionalLight.direction = new Vec3(0, -1, 0);
   const pointLights = new PointLightsCollection(device);
   pointLights.lights[0].color = new Color(1, 0, 0, 1);
-  pointLights.lights[0].intensity = 1;
+  pointLights.lights[0].intensity = 2;
   pointLights.lights[0].position = new Vec3(4, 2, -1);
-  pointLights.lights[0].color = new Color(0, 1, 0, 1);
-  pointLights.lights[0].intensity = 1;
-  pointLights.lights[0].position = new Vec3(-4, 2, -1);
-  pointLights.lights[0].color = new Color(0, 0, 1, 1);
-  pointLights.lights[0].intensity = 1;
-  pointLights.lights[0].position = new Vec3(2, -4, -1);
+  pointLights.lights[1].color = new Color(0, 1, 0, 1);
+  pointLights.lights[1].intensity = 2;
+  pointLights.lights[1].position = new Vec3(-4, 2, -1);
+  pointLights.lights[2].color = new Color(0, 0, 1, 1);
+  pointLights.lights[2].intensity = 2;
+  pointLights.lights[2].position = new Vec3(2, -4, -1);
 
   // GAME OBJECTS
   const camera = new Camera(device, canvas.width / canvas.height);
@@ -60,6 +61,7 @@ async function init() {
   paddle2.position.x = 10;
   paddle2.color = new Color(0.3, 0.3, 1, 1);
   const ball = new Ball(device, camera, ambientLight, directionalLight, pointLights);
+  const floor = new Floor(device, camera, ambientLight, directionalLight, pointLights);
 
   const update = () => {
     directionalLight.update();
@@ -68,6 +70,7 @@ async function init() {
     paddle1.update();
     paddle2.update();
     ball.update();
+    floor.update();
     pointLights.update();
   };
 
@@ -97,6 +100,7 @@ async function init() {
     paddle1.draw(renderPassEncoder);
     paddle2.draw(renderPassEncoder);
     ball.draw(renderPassEncoder);
+    floor.draw(renderPassEncoder);
 
     renderPassEncoder.end();
 
