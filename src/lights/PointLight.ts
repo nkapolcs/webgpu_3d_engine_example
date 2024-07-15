@@ -6,6 +6,9 @@ export class PointLight {
   public color = new Color(1, 1, 1, 1);
   public intensity = 1;
   public position = new Vec3(0, 0, 0);
+  public attenConst = 1;
+  public attenLinear = 0.1;
+  public attenQuad = 0.032;
 }
 
 export class PointLightsCollection {
@@ -13,7 +16,8 @@ export class PointLightsCollection {
   public lights: PointLight[] = [new PointLight(), new PointLight(), new PointLight()];
 
   constructor(device: GPUDevice) {
-    this.buffer = new UniformBuffer(device, 3 * 8 * Float32Array.BYTES_PER_ELEMENT, "Directional Light Buffer");
+    const byteSize = 3 * 12 * Float32Array.BYTES_PER_ELEMENT;
+    this.buffer = new UniformBuffer(device, byteSize, "Directional Light Buffer");
   }
 
   public update() {
@@ -26,9 +30,13 @@ export class PointLightsCollection {
         this.lights[i].position.x,
         this.lights[i].position.y,
         this.lights[i].position.z,
+        this.lights[i].attenConst,
+        this.lights[i].attenLinear,
+        this.lights[i].attenQuad,
+        0,
         0,
       ]);
-      this.buffer.update(data, i * 8 * Float32Array.BYTES_PER_ELEMENT);
+      this.buffer.update(data, i * 12 * Float32Array.BYTES_PER_ELEMENT);
     }
   }
 }
