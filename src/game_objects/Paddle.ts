@@ -1,5 +1,6 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../Camera/Camera";
+import { InputManager } from "../Input/InputManager";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { PointLightsCollection } from "../lights/PointLight";
@@ -22,9 +23,17 @@ export class Paddle {
 
   public color = new Color(1, 1, 1, 1);
 
-  private angle = 0.0;
+  private speed = 0.2;
+  public playerOne = true;
 
-  constructor(device: GPUDevice, camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: PointLightsCollection) {
+  constructor(
+    device: GPUDevice,
+    private inputManager: InputManager,
+    camera: Camera,
+    ambientLight: AmbientLight,
+    directionalLight: DirectionalLight,
+    pointLights: PointLightsCollection
+  ) {
     this.transformBuffer = new UniformBuffer(device, this.transform, "Paddle Transform");
 
     this.normalMatrixBuffer = new UniformBuffer(device, 16 * Float32Array.BYTES_PER_ELEMENT, "Paddle Normal Matrix");
@@ -33,13 +42,37 @@ export class Paddle {
   }
 
   public update() {
-    this.angle += 0.01;
+    let dirY = 0;
+
+    if (this.playerOne) {
+      if (this.inputManager.isKeyDown("w")) {
+        dirY = 1;
+      }
+      if (this.inputManager.isKeyDown("s")) {
+        dirY = -1;
+      }
+    } else {
+      if (this.inputManager.isKeyDown("ArrowUp")) {
+        dirY = 1;
+      }
+      if (this.inputManager.isKeyDown("ArrowDown")) {
+        dirY = -1;
+      }
+    }
+
+    this.position.y += dirY * this.speed;
+
+    if (this.position.y > 5) {
+      this.position.y = 5;
+    }
+    if (this.position.y < -5) {
+      this.position.y = -5;
+    }
+
     const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
-    const rotation = Mat4x4.rotationZ(this.angle);
     const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
 
-    this.transform = Mat4x4.multiply(translate, rotation);
-    this.transform = Mat4x4.multiply(this.transform, scale);
+    this.transform = Mat4x4.multiply(translate, scale);
 
     let normalMatrix = Mat3x3.fromMat4x4(this.transform);
     normalMatrix = Mat3x3.transpose(normalMatrix);
