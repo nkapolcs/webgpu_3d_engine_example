@@ -46,6 +46,7 @@ async function init() {
   const pointLights = new PointLightsCollection(device);
   pointLights.lights[0].color = new Color(1, 0, 0, 1);
   pointLights.lights[0].intensity = 2;
+  pointLights.lights[0].specularIntensity = 1;
   pointLights.lights[0].position = new Vec3(4, 2, -1);
   pointLights.lights[1].color = new Color(0, 1, 0, 1);
   pointLights.lights[1].intensity = 2;

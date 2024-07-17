@@ -11,6 +11,7 @@ struct VSOutput {
   @location(2) texCoord: vec2f,
   @location(3) normal: vec3f,
   @location(4) fragPos: vec3f,
+  @location(5) eye: vec3f,
 }
 
 @group(0) @binding(0)
@@ -22,6 +23,8 @@ var<uniform> textureTilling: vec2f;
 
 @group(1) @binding(0)
 var<uniform> viewProjection: mat4x4f;
+@group(1) @binding(1)
+var<uniform> eye: vec3f;
 
 @vertex
 fn materialVS(
@@ -38,6 +41,7 @@ fn materialVS(
   out.texCoord = in.texCoord * textureTilling;
   out.normal = normalMatrix[iid] * in.normal;
   out.fragPos = (transforms[iid] * vec4f(in.position, 1.0)).xyz;
+  out.eye = eye;
 
   return out;
 }
@@ -51,6 +55,9 @@ struct DirectionalLight {
   @location(0) color: vec3f,
   @location(1) intensity: f32,
   @location(2) direction: vec3f,
+  @location(3) _discard: f32,
+  @location(4) specularColor: vec3f,
+  @location(5) specularIntensity: f32,
 }
 
 struct PointLight {
@@ -60,6 +67,9 @@ struct PointLight {
   @location(3) attenConst: f32,
   @location(4) attenLin: f32,
   @location(5) attenQuad: f32,
+  @location(6) _discard: vec2f,
+  @location(7) specularColor: vec3f,
+  @location(8) specularIntensity: f32,
 }
 
 @group(2) @binding(0)
@@ -68,6 +78,8 @@ var diffuseTexture: texture_2d<f32>;
 var diffuseTexSampler: sampler;
 @group(2) @binding(2)
 var<uniform> diffuseColor: vec4f;
+@group(2) @binding(3)
+var<uniform> shininess: f32;
 
 @group(3) @binding(0)
 var<uniform> ambientLight: AmbientLight;
@@ -78,16 +90,26 @@ var<uniform> positionalLights: array<PointLight, 3>;
 
 @fragment
 fn materialFS(in: VSOutput) -> @location(0) vec4f {
-  // AMBIENT LIGHT
+
+  // Vector towards the eye
+  var toEye = normalize(in.eye - in.fragPos);
+
+  // Ambient Light
   var lightAmount = ambientLight.color * ambientLight.intensity;
 
-  // DIRECTIONAL LIGTH / DIFFUSE
+  // Directional Light / Diffuse Light
   var lightDir = normalize(-directionalLight.direction);
   var n = normalize(in.normal);
   var diff = max(dot(n, lightDir), 0.0);
   lightAmount += directionalLight.color * directionalLight.intensity * diff;
 
-  // POINT LIGHTS
+  // Specular Light
+  var halfVector = normalize(lightDir + toEye);
+  var dotSpecular = max(dot(n, halfVector), 0);
+  dotSpecular = pow(dotSpecular, shininess);
+  lightAmount += directionalLight.specularColor * dotSpecular * directionalLight.specularIntensity;
+
+  // Point Lights
   for(var i = 0; i < 3; i++) {
     var lightDir = normalize(positionalLights[i].position - in.fragPos);
     var dotLight = max(dot(n, lightDir), 0);
@@ -101,6 +123,12 @@ fn materialFS(in: VSOutput) -> @location(0) vec4f {
     attenuation = 1.0 / attenuation;
 
     lightAmount += positionalLights[i].color * positionalLights[i].intensity * dotLight * attenuation;
+
+    // Specular Light for Point Lights
+    halfVector = normalize(lightDir + toEye);
+    dotSpecular = max(dot(n, halfVector), 0);
+    dotSpecular = pow(dotSpecular, shininess);
+    lightAmount += positionalLights[i].specularColor * dotSpecular * positionalLights[i].specularIntensity;
   }
 
   var color = textureSample(diffuseTexture, diffuseTexSampler, in.texCoord) * in.color * diffuseColor;

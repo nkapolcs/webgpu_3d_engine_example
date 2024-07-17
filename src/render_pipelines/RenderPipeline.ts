@@ -38,6 +38,14 @@ export class RenderPipeline {
     this.diffuseColorBuffer.update(value);
   }
 
+  private shininessBuffer: UniformBuffer;
+  private _shininess = 32;
+
+  public set shininess(value: number) {
+    this._shininess = value;
+    this.shininessBuffer.update(new Float32Array([value]));
+  }
+
   constructor(
     private device: GPUDevice,
     camera: Camera,
@@ -49,6 +57,7 @@ export class RenderPipeline {
   ) {
     this.textureTillingBuffer = new UniformBuffer(device, this._textureTilling, "Texture Tilling Buffer");
     this.diffuseColorBuffer = new UniformBuffer(device, this._diffuseColor, "Diffuse Color Buffer");
+    this.shininessBuffer = new UniformBuffer(device, new Float32Array([this._shininess]), "Shininess Buffer");
 
     const shaderModule = device.createShaderModule({
       code: shaderSource,
@@ -121,10 +130,15 @@ export class RenderPipeline {
     });
 
     // The projection view group - for camera
-    const projectionViewGroupLayout = device.createBindGroupLayout({
+    const cameraViewGroupLayout = device.createBindGroupLayout({
       entries: [
         {
           binding: 0,
+          visibility: GPUShaderStage.VERTEX,
+          buffer: {},
+        },
+        {
+          binding: 1,
           visibility: GPUShaderStage.VERTEX,
           buffer: {},
         },
@@ -145,6 +159,11 @@ export class RenderPipeline {
         },
         {
           binding: 2,
+          visibility: GPUShaderStage.FRAGMENT,
+          buffer: {},
+        },
+        {
+          binding: 3,
           visibility: GPUShaderStage.FRAGMENT,
           buffer: {},
         },
@@ -174,7 +193,7 @@ export class RenderPipeline {
     const layout = device.createPipelineLayout({
       bindGroupLayouts: [
         vertexGroupLayout, // group 0
-        projectionViewGroupLayout, // group 1
+        cameraViewGroupLayout, // group 1
         this.materialBindGroupLayout, // group 2
         lightsGroupLayout, // group 3
       ],
@@ -232,12 +251,18 @@ export class RenderPipeline {
     });
 
     this.projectionViewBindGroup = device.createBindGroup({
-      layout: projectionViewGroupLayout,
+      layout: cameraViewGroupLayout,
       entries: [
         {
           binding: 0,
           resource: {
             buffer: camera.buffer.buffer,
+          },
+        },
+        {
+          binding: 1,
+          resource: {
+            buffer: camera.eyeBuffer.buffer,
           },
         },
       ],
@@ -284,6 +309,12 @@ export class RenderPipeline {
           binding: 2,
           resource: {
             buffer: this.diffuseColorBuffer.buffer,
+          },
+        },
+        {
+          binding: 3,
+          resource: {
+            buffer: this.shininessBuffer.buffer,
           },
         },
       ],
