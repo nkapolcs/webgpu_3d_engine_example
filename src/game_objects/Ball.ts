@@ -13,7 +13,7 @@ import { ShadowRenderPipeline } from "../render_pipelines/ShadowRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
 
 export class Ball {
-  private pipeline: RenderPipeline;
+  public pipeline: RenderPipeline;
   private shadowPipeline: ShadowRenderPipeline;
 
   private transformBuffer: UniformBuffer;
@@ -38,7 +38,16 @@ export class Ball {
 
     this.normalMatrixBuffer = new UniformBuffer(device, 16 * Float32Array.BYTES_PER_ELEMENT, "Paddle Normal Matrix");
 
-    this.pipeline = new RenderPipeline(device, camera, this.transformBuffer, this.normalMatrixBuffer, ambientLight, directionalLight, pointLights);
+    this.pipeline = new RenderPipeline(
+      device,
+      camera,
+      shadowCamera,
+      this.transformBuffer,
+      this.normalMatrixBuffer,
+      ambientLight,
+      directionalLight,
+      pointLights
+    );
 
     this.shadowPipeline = new ShadowRenderPipeline(device, shadowCamera, this.transformBuffer);
   }

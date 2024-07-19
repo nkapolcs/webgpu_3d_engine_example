@@ -12,6 +12,7 @@ struct VSOutput {
   @location(3) normal: vec3f,
   @location(4) fragPos: vec3f,
   @location(5) eye: vec3f,
+  @location(6) lightSpaceFragmentPos: vec4f,
 }
 
 @group(0) @binding(0)
@@ -25,6 +26,8 @@ var<uniform> textureTilling: vec2f;
 var<uniform> viewProjection: mat4x4f;
 @group(1) @binding(1)
 var<uniform> eye: vec3f;
+@group(1) @binding(2)
+var<uniform> lightSpaceProjectionView: mat4x4f;
 
 @vertex
 fn materialVS(
@@ -42,6 +45,7 @@ fn materialVS(
   out.normal = normalMatrix[iid] * in.normal;
   out.fragPos = (transforms[iid] * vec4f(in.position, 1.0)).xyz;
   out.eye = eye;
+  out.lightSpaceFragmentPos = lightSpaceProjectionView * vec4f(out.fragPos, 1.0);
 
   return out;
 }
@@ -80,6 +84,10 @@ var diffuseTexSampler: sampler;
 var<uniform> diffuseColor: vec4f;
 @group(2) @binding(3)
 var<uniform> shininess: f32;
+@group(2) @binding(4)
+var shadowTexture: texture_depth_2d;
+@group(2) @binding(5)
+var shadowSampler: sampler_comparison;
 
 @group(3) @binding(0)
 var<uniform> ambientLight: AmbientLight;
@@ -90,6 +98,10 @@ var<uniform> positionalLights: array<PointLight, 3>;
 
 @fragment
 fn materialFS(in: VSOutput) -> @location(0) vec4f {
+
+  // Shadows
+  // Do a perspective divide
+  var shadowCoords = in.lightSpaceFragmentPos.xyz / in.lightSpaceFragmentPos.w;
 
   // Vector towards the eye
   var toEye = normalize(in.eye - in.fragPos);

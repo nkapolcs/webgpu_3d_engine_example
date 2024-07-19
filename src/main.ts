@@ -67,14 +67,18 @@ async function init() {
 
   // - PADDLES, BALL, FLOOR
   const paddle1 = new Paddle(device, inputManager, camera, shadowCamera, ambientLight, directionalLight, pointLights);
+  paddle1.pipeline.shadowTexture = shadowTexture;
   paddle1.position.x = -10;
   paddle1.color = new Color(1, 0.3, 0.3, 1);
   const paddle2 = new Paddle(device, inputManager, camera, shadowCamera, ambientLight, directionalLight, pointLights);
+  paddle2.pipeline.shadowTexture = shadowTexture;
   paddle2.position.x = 10;
   paddle2.color = new Color(0.3, 0.3, 1, 1);
   paddle2.playerOne = false;
   const ball = new Ball(device, camera, shadowCamera, ambientLight, directionalLight, pointLights);
-  const floor = new Floor(device, camera, ambientLight, directionalLight, pointLights);
+  ball.pipeline.shadowTexture = shadowTexture;
+  const floor = new Floor(device, camera, shadowCamera, ambientLight, directionalLight, pointLights);
+  floor.pipeline.shadowTexture = shadowTexture;
 
   const update = () => {
     directionalLight.update();
