@@ -103,6 +103,12 @@ fn materialFS(in: VSOutput) -> @location(0) vec4f {
   // Do a perspective divide
   var shadowCoords = in.lightSpaceFragmentPos.xyz / in.lightSpaceFragmentPos.w;
 
+  // Transform to [0,1] range
+  var shadowTextureCoords = shadowCoords.xy * 0.5 + 0.5;
+  shadowTextureCoords.y = 1.0 - shadowTextureCoords.y;
+
+  var shadow = textureSampleCompare(shadowTexture, shadowSampler, shadowTextureCoords, shadowCoords.z - 0.01);
+
   // Vector towards the eye
   var toEye = normalize(in.eye - in.fragPos);
 
@@ -112,20 +118,19 @@ fn materialFS(in: VSOutput) -> @location(0) vec4f {
   // Directional Light / Diffuse Light
   var lightDir = normalize(-directionalLight.direction);
   var n = normalize(in.normal);
-  var diff = max(dot(n, lightDir), 0.0);
-  lightAmount += directionalLight.color * directionalLight.intensity * diff;
+  var dotLight = max(dot(n, lightDir), 0.0);
+  lightAmount += directionalLight.color * directionalLight.intensity * dotLight * shadow;
 
   // Specular Light
   var halfVector = normalize(lightDir + toEye);
-  var dotSpecular = max(dot(n, halfVector), 0);
+  var dotSpecular = max(dot(n, halfVector), 0.0);
   dotSpecular = pow(dotSpecular, shininess);
-  lightAmount += directionalLight.specularColor * dotSpecular * directionalLight.specularIntensity;
+  lightAmount += directionalLight.specularColor * dotSpecular * directionalLight.specularIntensity * shadow;
 
   // Point Lights
   for(var i = 0; i < 3; i++) {
     var lightDir = normalize(positionalLights[i].position - in.fragPos);
-    var dotLight = max(dot(n, lightDir), 0);
-    lightAmount += positionalLights[i].color * positionalLights[i].intensity * dotLight;
+    var dotLight = max(dot(n, lightDir), 0.0);
 
     var distance = length(positionalLights[i].position - in.fragPos);
     var attenuation = positionalLights[i].attenConst
@@ -134,13 +139,13 @@ fn materialFS(in: VSOutput) -> @location(0) vec4f {
 
     attenuation = 1.0 / attenuation;
 
-    lightAmount += positionalLights[i].color * positionalLights[i].intensity * dotLight * attenuation;
+    lightAmount += positionalLights[i].color * positionalLights[i].intensity * dotLight * attenuation * shadow;
 
     // Specular Light for Point Lights
     halfVector = normalize(lightDir + toEye);
-    dotSpecular = max(dot(n, halfVector), 0);
+    dotSpecular = max(dot(n, halfVector), 0.0);
     dotSpecular = pow(dotSpecular, shininess);
-    lightAmount += positionalLights[i].specularColor * dotSpecular * positionalLights[i].specularIntensity;
+    lightAmount += positionalLights[i].specularColor * dotSpecular * positionalLights[i].specularIntensity * shadow;
   }
 
   var color = textureSample(diffuseTexture, diffuseTexSampler, in.texCoord) * in.color * diffuseColor;

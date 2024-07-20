@@ -19,7 +19,7 @@ export class Floor {
   private transform = Mat4x4.identity();
 
   public scale = new Vec3(40, 40, 1);
-  public position = new Vec3(0, 0, 1);
+  public position = new Vec3(0, 0, 4);
 
   public color = new Color(0.2, 0.2, 0.2, 1);
 

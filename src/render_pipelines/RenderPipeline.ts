@@ -260,7 +260,11 @@ export class RenderPipeline {
       },
     });
 
-    this.diffuseTexture = Texture2D.createEmpty(this.device);
+    // this.diffuseTexture = Texture2D.createEmpty(this.device);
+
+    this._diffuseTexture = Texture2D.createEmpty(device);
+    this._shadowTexture = Texture2D.createShadowTexture(device, 1024, 1024);
+    this.materialBindGroup = this.createMaterialBindGroup(this._diffuseTexture, this._shadowTexture);
 
     this.vertexBindGroup = device.createBindGroup({
       layout: vertexGroupLayout,

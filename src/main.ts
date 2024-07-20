@@ -40,11 +40,11 @@ async function init() {
   // LIGHTS
   const ambientLight = new AmbientLight(device);
   ambientLight.color = new Color(1, 1, 1, 1);
-  ambientLight.intensity = 0.5;
+  ambientLight.intensity = 0.2;
   const directionalLight = new DirectionalLight(device);
   directionalLight.color = new Color(1, 1, 1, 1);
   directionalLight.intensity = 1;
-  directionalLight.direction = new Vec3(0, -1, 0);
+  directionalLight.direction = new Vec3(0, -1, 0.5);
   const pointLights = new PointLightsCollection(device);
   pointLights.lights[0].color = new Color(1, 0, 0, 1);
   pointLights.lights[0].intensity = 2;
