@@ -7,6 +7,7 @@ import { PointLightsCollection } from "../lights/PointLight";
 import { Color } from "../math/Color";
 import { Mat3x3 } from "../math/Mat3x3";
 import { Mat4x4 } from "../math/Mat4x4";
+import { Vec2 } from "../math/Vec2";
 import { Vec3 } from "../math/Vec3";
 import { RenderPipeline } from "../render_pipelines/RenderPipeline";
 import { ShadowRenderPipeline } from "../render_pipelines/ShadowRenderPipeline";
@@ -25,6 +26,9 @@ export class Ball {
   public position = new Vec3(0, 0, 0);
 
   public color = new Color(1, 1, 1, 1);
+
+  private direction = new Vec2(10, 1);
+  private speed = 0.1;
 
   constructor(
     device: GPUDevice,
@@ -53,6 +57,14 @@ export class Ball {
   }
 
   public update() {
+    this.direction.normalize();
+    this.position.x += this.direction.x * this.speed;
+    this.position.y += this.direction.y * this.speed;
+
+    if (this.position.y > 5 || this.position.y < -5) {
+      this.direction.y *= -1;
+    }
+
     const scale = Mat4x4.scale(this.scale.x, this.scale.y, this.scale.z);
     const translate = Mat4x4.translation(this.position.x, this.position.y, this.position.z);
     this.transform = Mat4x4.multiply(translate, scale);
