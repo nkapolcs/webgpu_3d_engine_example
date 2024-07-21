@@ -22,8 +22,8 @@ export class Vec2 extends Float32Array {
   }
 
   public normalize() {
-    const length = Math.sqrt(this[0] * this[0] + this[1] * this[1]);
-    this[0] /= length;
-    this[1] /= length;
+    const length = Math.sqrt(this.x * this.x + this.y * this.y);
+    this.x /= length;
+    this.y /= length;
   }
 }

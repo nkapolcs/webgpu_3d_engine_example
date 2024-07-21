@@ -1,6 +1,7 @@
 import { GeometryBuffersCollection } from "../attribute_buffers/GeometryBuffersCollection";
 import { Camera } from "../Camera/Camera";
 import { ShadowCamera } from "../Camera/ShadowCamera";
+import { RectCollider } from "../collider/RectCollider";
 import { AmbientLight } from "../lights/AmbientLight";
 import { DirectionalLight } from "../lights/DirectionalLight";
 import { PointLightsCollection } from "../lights/PointLight";
@@ -12,6 +13,7 @@ import { Vec3 } from "../math/Vec3";
 import { RenderPipeline } from "../render_pipelines/RenderPipeline";
 import { ShadowRenderPipeline } from "../render_pipelines/ShadowRenderPipeline";
 import { UniformBuffer } from "../uniform_buffers/UniformBuffer";
+import { Paddle } from "./Paddle";
 
 export class Ball {
   public pipeline: RenderPipeline;
@@ -29,6 +31,8 @@ export class Ball {
 
   private direction = new Vec2(10, 1);
   private speed = 0.1;
+
+  public collider = new RectCollider();
 
   constructor(
     device: GPUDevice,
@@ -75,6 +79,11 @@ export class Ball {
     normalMatrix = Mat3x3.transpose(normalMatrix);
     normalMatrix = Mat3x3.inverse(normalMatrix);
     this.normalMatrixBuffer.update(Mat3x3.to16AlignedMat3x3(normalMatrix));
+
+    this.collider.x = this.position.x - this.scale.x / 2;
+    this.collider.y = this.position.y - this.scale.y / 2;
+    this.collider.width = this.scale.x;
+    this.collider.height = this.scale.y;
   }
 
   public draw(renderPassEncoder: GPURenderPassEncoder) {
@@ -84,5 +93,11 @@ export class Ball {
 
   public drawShadows(renderPassEncoder: GPURenderPassEncoder) {
     this.shadowPipeline.draw(renderPassEncoder, GeometryBuffersCollection.cubeBuffers);
+  }
+
+  public collidesPaddle(paddle: Paddle) {
+    if (this.collider.intersects(paddle.collider)) {
+      this.direction.x *= -1;
+    }
   }
 }

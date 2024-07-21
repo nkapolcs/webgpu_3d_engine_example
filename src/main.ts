@@ -90,6 +90,8 @@ async function init() {
     floor.update();
     pointLights.update();
     shadowCamera.update();
+    ball.collidesPaddle(paddle1);
+    ball.collidesPaddle(paddle2);
   };
 
   const shadowPass = (commandEncoder: GPUCommandEncoder) => {
